@@ -1,1 +1,1 @@
-web: python news-bot-code.py
+web: python news-bot-code
