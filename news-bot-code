@@ -1,0 +1,165 @@
+import telebot
+import requests
+import time
+from keyboa import Keyboa
+bot = telebot.TeleBot('2132508579:AAFqjpzmPwQhGAoP5y-HMFsHP8x0S-2nvsQ')
+
+country = [
+        "Germany", "Poland", "Ukraine"]
+kb_country = Keyboa(items=country, copy_text_to_callback=True)
+country_res=''
+help_label=''
+@bot.message_handler(commands=["start"])
+def start(m, res=False):
+    bot.send_message(m.chat.id, text='Country:', reply_markup=kb_country())
+@bot.callback_query_handler(func=lambda call: True)
+def send_text(call):
+    code = requests.get(url='https://www.deutschland.de/ru/news').text
+    s = []
+    code = code.split()
+    for i in range(len(code)):
+        if 'about' in code[i]:
+            s.append(code[i])
+    s.pop(0)
+    for i in range(len(s)):
+        s[i] = s[i][7:-1]
+        s[i] = 'https://www.deutschland.de' + s[i]
+    print(s)
+    j = []
+    x = ''
+    code1 = requests.get(url=s[0]).text
+    code1 = code1.split()
+    for i in range(len(code1)):
+        if '<p>' in code1[i]:
+            while True:
+                if '</p>' in code1[i]:
+                    x = code1[i]
+                    j.append(x)
+                    break
+                x = code1[i]
+                if '<p>' in x:
+                    x = x.replace('<p>', '')
+                if '</p>' in x:
+                    x = x.replace('</p>', '')
+                if '<div>' in x:
+                    x = x.replace('<div>', '')
+                if '</div>' in x:
+                    x = x.replace('</div>', '')
+                j.append(x)
+                i += 1
+    label = ''
+    for i in range(len(j)):
+        if '</p>' in j[i] and '</div>' in j[i]:
+            x = j[i].replace('</p></div>', '')
+            label = label + ' ' + x
+            break
+        else:
+            if label == '':
+                label = j[i]
+            else:
+                label = label + ' ' + j[i]
+    index_sokr = 0
+    for i in range(len(j)):
+        if '</p>' in j[i]:
+            index_sokr = i
+            break
+    j = j[index_sokr + 1:]
+    for i in range(len(j)):
+        if '<p>' in j[i]:
+            j[i] = j[i].replace('<p>', '')
+        if '</p>' in j[i]:
+            j[i] = j[i].replace('</p>', '')
+        if '<div>' in j[i]:
+            j[i] = j[i].replace('<div>', '')
+        if '</div>' in j[i]:
+            j[i] = j[i].replace('</div>', '')
+    main_text = ''
+    for i in range(len(j)):
+        if main_text == '':
+            main_text = j[i]
+        else:
+            main_text += ' ' + j[i]
+    help_label=label
+    if call.data == 'Germany':
+        bot.send_message(call.message.chat.id, "*" + label + '*', parse_mode="Markdown")
+        bot.send_message(call.message.chat.id, main_text)
+    time.sleep(3)
+    while True:
+        code = requests.get(url='https://www.deutschland.de/ru/news').text
+        s = []
+        code = code.split()
+        for i in range(len(code)):
+            if 'about' in code[i]:
+                s.append(code[i])
+        s.pop(0)
+        for i in range(len(s)):
+            s[i] = s[i][7:-1]
+            s[i] = 'https://www.deutschland.de' + s[i]
+        print(s)
+        j = []
+        x = ''
+        code1 = requests.get(url=s[0]).text
+        code1 = code1.split()
+        for i in range(len(code1)):
+            if '<p>' in code1[i]:
+                while True:
+                    if '</p>' in code1[i]:
+                        x = code1[i]
+                        j.append(x)
+                        break
+                    x = code1[i]
+                    if '<p>' in x:
+                        x = x.replace('<p>', '')
+                    if '</p>' in x:
+                        x = x.replace('</p>', '')
+                    if '<div>' in x:
+                        x = x.replace('<div>', '')
+                    if '</div>' in x:
+                        x = x.replace('</div>', '')
+                    j.append(x)
+                    i += 1
+        label = ''
+        for i in range(len(j)):
+            if '</p>' in j[i] and '</div>' in j[i]:
+                x = j[i].replace('</p></div>', '')
+                label = label + ' ' + x
+                break
+            else:
+                if label == '':
+                    label = j[i]
+                else:
+                    label = label + ' ' + j[i]
+        index_sokr = 0
+        for i in range(len(j)):
+            if '</p>' in j[i]:
+                index_sokr = i
+                break
+        j = j[index_sokr + 1:]
+        for i in range(len(j)):
+            if '<p>' in j[i]:
+                j[i] = j[i].replace('<p>', '')
+            if '</p>' in j[i]:
+                j[i] = j[i].replace('</p>', '')
+            if '<div>' in j[i]:
+                j[i] = j[i].replace('<div>', '')
+            if '</div>' in j[i]:
+                j[i] = j[i].replace('</div>', '')
+        main_text = ''
+        for i in range(len(j)):
+            if main_text == '':
+                main_text = j[i]
+            else:
+                main_text += ' ' + j[i]
+        if help_label!=label:
+            if call.data == 'Germany':
+                bot.send_message(call.message.chat.id, "*" + label + '*', parse_mode="Markdown")
+                bot.send_message(call.message.chat.id, main_text)
+        help_label=label
+        time.sleep(3)
+@bot.message_handler(content_types=["text"])
+def handle_text(message):
+    bot.send_message(message.chat.id, 'Вы написали: ' + message.text)
+
+
+
+bot.polling(none_stop=True, interval=0)
