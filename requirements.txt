@@ -1,1 +1,4 @@
-
+telebot
+requests
+time
+keyboa
